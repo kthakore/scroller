@@ -12,7 +12,7 @@ use Object;
 my $quit;
 my $spring       = Object->new();
 my $t            = 0.0;
-my $dt           = 0.1;
+my $dt           = 0.01;
 my $current_time = 0.0;
 my $accumulator  = 0.0;
 my $app          = SDLx::App->new( w => 200, h => 200, title => "timestep" );
