@@ -26,6 +26,7 @@ sub interpolate {
 }
 
 sub acceleration {
+    return -9.8;
     my ( $self, $state ) = @_;
     my $k = 10;
     my $b = 1;

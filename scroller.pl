@@ -34,7 +34,7 @@ while ( !$quit ) {
     }
     my $state = $spring->interpolate( $accumulator / $dt );
     $app->draw_rect( [ 0, 0, $app->w, $app->h ], 0x0 );
-    $app->draw_rect( [ 100 - int( $state->{x} ), 98, 2, 2 ], 0xFF0FFF );
+    $app->draw_rect( [ 98, int( $state->{x} ), 2, 2 ], 0xFF0FFF );
     $app->update();
 }
 
