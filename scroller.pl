@@ -17,9 +17,9 @@ $app->update();
 my @update_rects = ();
 
 my $sprite = SDLx::Sprite::Animated->new(
-    image           => 'data/m.png',
+    image           => 'data/m.bmp',
     rect            => SDL::Rect->new( 0, 0, 16, 28 ),
-    ticks_per_frame => 10,
+    ticks_per_frame => 2,
 );
 
 $sprite->set_sequences(
@@ -47,7 +47,7 @@ my @collide_blocks = (
     [ 141, 379 ]
 );
 
-foreach ( ( 0 .. 2, 10 ... 15 ) ) {
+foreach ( ( 0 .. 2, 10 ... 15, 17 ... 25 ) ) {
     push @collide_blocks, [ $_ * 20 + $_ * 1, 400 ];
 }
 
@@ -66,6 +66,7 @@ my $gravity   = 180;
 my $dashboard = '';
 my $w         = 16;
 my $h         = 28;
+my $scroller  = 0;
 
 $obj->set_acceleration(
     sub {
@@ -157,6 +158,28 @@ $obj->set_acceleration(
         if ( $state->y + 10 > $app->h ) {
 
             $quit = 1;
+        }
+
+
+
+        if ($scroller) {
+            my $dir = 0;
+            $scroller-- and $dir = +1 if $scroller > 0;
+            $scroller++ and $dir = -1 if $scroller < 0;
+
+            $state->x( $state->x() + $dir );
+
+            $_->[0] += $dir foreach (@collide_blocks);
+
+        }
+        else {
+            if ( $state->x() > $app->w - 100 ) {
+                $scroller = -5;
+            }
+            if ( $state->x() < 100 ) {
+                $scroller = 5;
+            }
+
         }
 
         return ( 0, $ay, 0 );
