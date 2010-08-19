@@ -36,8 +36,7 @@ my $moving    = -1;
 my $jumping    = -1;
 my $jump_count = 20;
 my $print      = '';
-
-
+my $scroller = 0;
 
 
 $obj->set_acceleration(
@@ -97,6 +96,32 @@ $obj->set_acceleration(
        # $print = " $move | $moving ";
 
         $move = 'none';
+
+	
+     	if( $scroller )
+	{
+	   my $dir = 0;
+           $scroller-- and $dir = +1 if $scroller > 0;
+	   $scroller++ and $dir = -1 if $scroller < 0;
+
+           $state->x( $state->x() + $dir );
+
+	   $_->[0] += $dir foreach( @collide_blocks );
+
+	}
+	else
+	{
+		if ( $state->x() > $app->w - 25 )
+		{
+			$scroller = -5;
+		}
+		if ( $state->x() <  25 )
+		{
+			$scroller = 5; 
+		}
+	
+
+	}
         return ( 0, $ay, 0 );
     }
 );
