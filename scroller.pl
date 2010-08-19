@@ -17,7 +17,7 @@ $app->update();
 my @update_rects = ();
 
 my $sprite = SDLx::Sprite::Animated->new(
-    image           => 'data/m.bmp',
+    image           => 'data/m.png',
     rect            => SDL::Rect->new( 0, 0, 16, 28 ),
     ticks_per_frame => 2,
 );
@@ -96,6 +96,9 @@ $obj->set_acceleration(
         }
         if ( $pressed->{up} && !$lockjump ) {
 
+	  $sprite->sequence('jumpr')   if ( $sprite->sequence() =~ 'r');
+	  $sprite->sequence('jumpl')   if ( $sprite->sequence() =~ 'l');
+
             $state->v_y($vel_y);
             $lockjump = 1;
 
@@ -127,6 +130,8 @@ $obj->set_acceleration(
                 my $block = $collision->[1];
                 $state->y( $block->[1] + $block->[3] + 3 );
                 $state->v_y(0);
+
+
             }
             else {
 
@@ -143,14 +148,16 @@ $obj->set_acceleration(
                 $state->v_y(0);    # Causes test again in next frame
                 $ay = 0;
                 $lockjump = 0 if ( !$pressed->{up} );
+		$sprite->sequence( 'stopr' ) if $sprite->sequence =~ 'r';
+		$sprite->sequence( 'stopl' ) if $sprite->sequence =~ 'l';
 
             }
-            else                   #falling in air
-            {
+            else              
+            { #falling in air 
 
                 $ay = $gravity;
 
-                #					$lockjump = 1;
+		# $lockjump = 1;
 
             }
         }
@@ -192,7 +199,7 @@ my $render_obj = sub {
 
     my $c_rect = SDL::Rect->new( $state->x, $state->y, 16, 28 );
 
-    $app->draw_rect( $c_rect, 0xFF00CCFF );
+#    $app->draw_rect( $c_rect, 0xFF00CCFF );
 
     #	$app->draw_rect( [50,50, 16, 28], 0xFF00CCFF );
     $sprite->x( $state->x );
