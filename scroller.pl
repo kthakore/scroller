@@ -89,8 +89,8 @@ $obj->set_acceleration(
             if ( $move =~ 'right' ) { $state->x($state->x+1); $state->v_x(80); $moving = 1 }
         }      
            
-            if ( $move =~ 'stopl' ) {  $moving = -1; $state->v_x(0.7* $state->v_x )}
-            if ( $move =~ 'stopr' ) {  $moving = -1; $state->v_x(0.7* $state->v_x ) }
+            if ( $move =~ 'stopl' && $move !~ 'left' && $move !~ 'right') {  $moving = -1; $state->v_x(0.7* $state->v_x )}
+            if ( $move =~ 'stopr' && $move !~ 'right' && $move =~ 'left' ) {  $moving = -1; $state->v_x(0.7* $state->v_x ) }
        
 
        # $print = " $move | $moving ";
@@ -178,7 +178,9 @@ sub check_collision {
  my @collisions = ();
 
  foreach ( @$blocks )
- {
+ { 
+	 #last if $_->[0] < 0;
+    # last if $_->[0] > $app->w;
    my $hash = { x => $mario->x, y=> $mario->y, w=> 10, h => 10, xv => $mario->v_x*0.03, yv => $mario->v_y*0.03 };
    my $rect = hash2rect ($hash);
    my $bhash =  {x=> $_->[0], y=> $_->[1], w => $_->[2], h => $_->[3] };
@@ -189,12 +191,7 @@ sub check_collision {
 
 		my $axis =  $c->axis() || 'y';
 
-		my $xdiff = $mario->x - $_->[0];
-		$xdiff = int( abs($xdiff + 0.01)/($xdiff + 0.01) );
-
-		my $ydiff = $mario->y - $_->[0];
-		$ydiff =  int( abs($ydiff + 0.01)/($ydiff + 0.01) );
-		return [$axis, $xdiff, $ydiff];
+		return [$axis];
 	 
 	}
 
