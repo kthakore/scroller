@@ -16,192 +16,177 @@ $app->update();
 my @update_rects = ();
 
 my $obj =
-  SDLx::Controller::Object->new( x => 10, y => 380, v_x => 0, v_y => 0 );
+SDLx::Controller::Object->new( x => 10, y => 380, v_x => 0, v_y => 0 );
 
-my @collide_blocks = (
-    [ 19,  350 ],
-    [ 40,  350 ],
-    [ 30,  329 ],
-    [ 120, 400 ],
-    [ 141, 400 ],
-    [ 141, 379 ]
-);
+my @collide_blocks = ([19,350], [40,350], [30,329], [ 120, 400 ], [141,400], [141,379] );
 
-foreach ( ( 0 .. 2, 10 ... 15 ) ) {
-    push @collide_blocks, [ $_ * 20 + $_ * 1, 400 ];
+foreach( (0..2, 10...15)  )
+{
+	push @collide_blocks, [$_*20 + $_*1, 400];
 }
 
-foreach (@collide_blocks) {
-    $_->[1] -= 20;
-    $_->[2] = 20;
-    $_->[3] = 20;
+foreach(  @collide_blocks )
+{
+	$_->[1] -= 20;
+	$_->[2]=20; $_->[3]=20;
 }
 
-my $pressed   = {};
-my $lockjump  = 0;
-my $vel_x     = 100;
-my $vel_y     = -102;
-my $quit      = 0;
-my $gravity   = 180;
+my $pressed = { };
+my $lockjump = 0;
+my $vel_x = 100;
+my $vel_y = -102;
+my $quit = 0;
+my $gravity = 180;
 my $dashboard = '';
 
 $obj->set_acceleration(
     sub {
         my $time  = shift;
         my $state = shift;
-        $state->v_x(0);    #Don't move by default
-        my $ay = 0;
+		$state->v_x( 0 ); #Don't move by default
+        my $ay    = 0; 	
+		#Basic movements
+		if( $pressed->{right} ) { $state->v_x( $vel_x );  }
+		if( $pressed->{left} ) { $state->v_x( -$vel_x ); }
+		if( $pressed->{up} && !$lockjump){ $state->v_y( $vel_y ); $lockjump = 1; }
+	
+		my $collision = check_collision( $state, \@collide_blocks);
+		$dashboard = 'Collision = '.Dumper $collision;
 
-        #Basic movements
-        if ( $pressed->{right} ) { $state->v_x($vel_x); }
-        if ( $pressed->{left} )  { $state->v_x( -$vel_x ); }
-        if ( $pressed->{up} && !$lockjump ) {
-            $state->v_y($vel_y);
-            $lockjump = 1;
-        }
+		if( $collision != -1 && $collision->[0] eq 'x' )
+		{
+			my $block = $collision->[1];
+	
+			#X-axis collision_check
+			if( $state->v_x() > 0 ){ #moving right 
+				
+		       $state->x( $block->[0] - 10 - 3  ); #set to edge of block
 
-        my $collision = check_collision( $state, \@collide_blocks );
-        $dashboard = 'Collision = ' . Dumper $collision;
+			}
+			if( $state->v_x() < 0) { #moving left
+	
+				$state->x( $block->[0] + 3 + $block->[2] ); #set to edge of block
+			}
+		}
 
-        if ( $collision != -1 && $collision->[0] eq 'x' ) {
-            my $block = $collision->[1];
+			#y-axis collision_check
 
-            #X-axis collision_check
-            if ( $state->v_x() > 0 ) {    #moving right
+			if( $state->v_y() < 0 ) { #moving up
+				   if( $collision != -1 && $collision->[0] eq 'y')
+				   {
+					my $block = $collision->[1];
+					$state->y ($block->[1] + $block->[3] + 3);
+					$state->v_y ( 0 );
+				   }
+				   else
+				   {
+					 #continue falling
+				     $ay = $gravity;
+				   }
+				}
 
-                $state->x( $block->[0] - 10 - 3 );    #set to edge of block
+			 else #moving down on ground
+			 {
+				if( $collision != -1 && $collision->[0] eq 'y')
+				   {
+					my $block = $collision->[1];
+					$state->y ( $block->[1] - 10 - 1);
+					$state->v_y( 0 ); # Causes test again in next frame
+					$ay = 0;
+					$lockjump = 0 if( !$pressed->{up} ); 
 
-            }
-            if ( $state->v_x() < 0 ) {                #moving left
+					}
+				else #falling in air
+				{
 
-                $state->x( $block->[0] + 3 + $block->[2] )
-                  ;                                   #set to edge of block
-            }
-        }
+					$ay = $gravity;				
+#					$lockjump = 1;
 
-        #y-axis collision_check
+				}
+			 }
+			
 
-        if ( $state->v_y() < 0 ) {                    #moving up
-            if ( $collision != -1 && $collision->[0] eq 'y' ) {
-                my $block = $collision->[1];
-                $state->y( $block->[1] + $block->[3] + 3 );
-                $state->v_y(0);
-            }
-            else {
+		if ( $state->y+10 > $app->h )
+		{
+			
+			$quit = 1;
+		}
 
-                #continue falling
-                $ay = $gravity;
-            }
-        }
-
-        else    #moving down on ground
-        {
-            if ( $collision != -1 && $collision->[0] eq 'y' ) {
-                my $block = $collision->[1];
-                $state->y( $block->[1] - 10 - 1 );
-                $state->v_y(0);    # Causes test again in next frame
-                $ay = 0;
-                $lockjump = 0 if ( !$pressed->{up} );
-
-            }
-            else                   #falling in air
-            {
-
-                $ay = $gravity;
-
-                #					$lockjump = 1;
-
-            }
-        }
-
-        if ( $state->y + 10 > $app->h ) {
-
-            $quit = 1;
-        }
 
         return ( 0, $ay, 0 );
     }
 );
 
+
 my $render_obj = sub {
 
-    my $state = shift;
+	my $state = shift;
 
-    my $c_rect = SDL::Rect->new( $state->x, $state->y, 10, 10 );
+	my $c_rect = SDL::Rect->new( $state->x, $state->y , 10, 10 );
 
-    $app->draw_rect( $c_rect, 0xFF00CCFF );
+	$app->draw_rect( $c_rect, 0xFF00CCFF );
 
 };
 
 $app->add_event_handler(
-    sub {
-        return 0 if $_[0]->type == SDL_QUIT;
+	sub {
+		return 0 if $_[0]->type == SDL_QUIT;
 
-        my $key = $_[0]->key_sym;
-        my $name = SDL::Events::get_key_name($key) if $key;
+		my $key = $_[0]->key_sym;
+		my $name =  SDL::Events::get_key_name($key) if $key;
 
-        if ( $_[0]->type == SDL_KEYDOWN ) {
-            $pressed->{$name} = 1;
-        }
-        elsif ( $_[0]->type == SDL_KEYUP ) {
-            $pressed->{$name} = 0;
-        }
+		if ( $_[0]->type == SDL_KEYDOWN ) {	
+			$pressed->{$name} = 1;
+		}
+		elsif ( $_[0]->type == SDL_KEYUP ) {
+			$pressed->{$name} = 0;			
+		}
 
-        return 1 if !$quit;
-    }
+		return 1 if !$quit;
+	}
 );
 
 $app->add_show_handler(
-    sub {
-        $app->draw_rect( [ 0, 0, $app->w, $app->h ], 0x0 );
-        $app->draw_rect( $_, 0xFFFF0000 ) foreach @collide_blocks;
-
-#::GFX::Primitives::string_color( $app, $app->w/2-100, 0, $dashboard, 0xFF0000FF);
-        SDL::GFX::Primitives::string_color(
-            $app,
-            $app->w / 2 - 100,
-            $app->h / 2,
-            "Mario is DEAD", 0xFF0000FF
-        ) if $quit;
-
-    }
+	sub { 
+		$app->draw_rect( [ 0, 0, $app->w, $app->h ], 0x0 );		
+		$app->draw_rect( $_, 0xFFFF0000 ) foreach @collide_blocks;
+        #::GFX::Primitives::string_color( $app, $app->w/2-100, 0, $dashboard, 0xFF0000FF);
+		SDL::GFX::Primitives::string_color( $app, $app->w/2-100, $app->h/2, "Mario is DEAD", 0xFF0000FF) if $quit;
+		
+	} 
 );
 
 $app->add_object( $obj, $render_obj );
 
-$app->add_show_handler( sub { $app->update(); } );
+$app->add_show_handler(
+	sub { $app->update( );  } );
 
 $app->run_test;
 
+
 sub check_collision {
-    my ( $mario, $blocks ) = @_;
+	my ($mario, $blocks ) = @_;
 
-    my @collisions = ();
+	my @collisions = ();
 
-    foreach (@$blocks) {
-        my $hash = {
-            x  => $mario->x,
-            y  => $mario->y,
-            w  => 10,
-            h  => 10,
-            xv => $mario->v_x * 0.02,
-            yv => $mario->v_y * 0.02
-        };
-        my $rect  = hash2rect($hash);
-        my $bhash = { x => $_->[0], y => $_->[1], w => $_->[2], h => $_->[3] };
-        my $block = hash2rect($bhash);
-        my $c =
-          dynamic_collision( $rect, $block, interval => 1, keep_order => 1 );
-        if ($c) {
+	foreach ( @$blocks )
+	{ 
+		my $hash = { x => $mario->x, y=> $mario->y, w=> 10, h => 10, xv => $mario->v_x*0.02, yv => $mario->v_y*0.02 };
+		my $rect = hash2rect ($hash);
+		my $bhash =  {x=> $_->[0], y=> $_->[1], w => $_->[2], h => $_->[3] };
+		my $block = hash2rect ( $bhash );
+		my $c = dynamic_collision ($rect, $block, interval=>1, keep_order=>1); 
+		if ( $c )
+		{
 
-            my $axis = $c->axis() || 'y';
+			my $axis =  $c->axis() || 'y';	
 
-            return [ $axis, $_ ];
+			return [$axis, $_ ];
 
-        }
+		}
 
-    }
+	}
 
-    return -1;
+	return -1;
 
 }
