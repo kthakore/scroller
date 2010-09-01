@@ -7,7 +7,7 @@ use Math::Trig;
 use Collision::2D ':all';
 use Data::Dumper;
 use SDLx::App;
-use SDLx::Controller::Object;
+use SDLx::Controller::Interface;
 use SDLx::Sprite::Animated;
 
 my $app = SDLx::App->new( w => 400, h => 400, dt => 0.02, title => 'Pario' );
@@ -36,7 +36,7 @@ $sprite->sequence('stopr');
 $sprite->start();
 
 my $obj =
-  SDLx::Controller::Object->new( x => 10, y => 380, v_x => 0, v_y => 0 );
+  SDLx::Controller::Interface->new( x => 10, y => 380, v_x => 0, v_y => 0 );
 
 my @collide_blocks = (
     [ 19,  330 ],
