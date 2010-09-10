@@ -198,10 +198,6 @@ my $render_obj = sub {
     my $state = shift;
 
     my $c_rect = SDL::Rect->new( $state->x, $state->y, 16, 28 );
-
-#    $app->draw_rect( $c_rect, 0xFF00CCFF );
-
-    #	$app->draw_rect( [50,50, 16, 28], 0xFF00CCFF );
     $sprite->x( $state->x );
     $sprite->y( $state->y );
     $sprite->next();
@@ -230,7 +226,7 @@ $app->add_event_handler(
 $app->add_show_handler(
     sub {
         $app->draw_rect( [ 0, 0, $app->w, $app->h ], 0x0 );
-        $app->draw_rect( $_, 0xFFFF0000 ) foreach @collide_blocks;
+        $app->draw_rect( $_, 0xFF0000FF ) foreach @collide_blocks;
 
 #::GFX::Primitives::string_color( $app, $app->w/2-100, 0, $dashboard, 0xFF0000FF);
         SDL::GFX::Primitives::string_color(
@@ -243,11 +239,10 @@ $app->add_show_handler(
     }
 );
 
-$app->add_object( $obj, $render_obj );
-
+$obj->attach( $app, $render_obj );
 $app->add_show_handler( sub { $app->update(); } );
 
-$app->run_test;
+$app->run();
 
 sub check_collision {
     my ( $mario, $blocks ) = @_;
