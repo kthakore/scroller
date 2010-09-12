@@ -19,7 +19,7 @@ my @update_rects = ();
 my $sprite = SDLx::Sprite::Animated->new(
     image           => 'data/m.png',
     rect            => SDL::Rect->new( 0, 0, 16, 28 ),
-    ticks_per_frame => 2,
+    ticks_per_frame => 6,
 );
 
 $sprite->set_sequences(
@@ -29,7 +29,6 @@ $sprite->set_sequences(
     stopr => [ [ 0, 0 ] ],
     jumpr => [ [ 5, 0 ] ],
     jumpl => [ [ 5, 1 ] ],
-
 );
 
 $sprite->sequence('stopr');
@@ -79,7 +78,7 @@ $obj->set_acceleration(
         if ( $pressed->{right} ) {
             $state->v_x($vel_x);
             if   ( $pressed->{up} ) { $sprite->sequence('jumpr') }
-            else                    { $sprite->sequence('right'); }
+            elsif ($sprite->sequence() ne 'right') { $sprite->sequence('right'); }
 
         }
         elsif ( $sprite->sequence() eq 'right' && !$pressed->{left} ) {
@@ -89,7 +88,7 @@ $obj->set_acceleration(
         if ( $pressed->{left} ) {
             $state->v_x( -$vel_x );
             if   ( $pressed->{up} ) { $sprite->sequence('jumpl') }
-            else                    { $sprite->sequence('left'); }
+            elsif ($sprite->sequence() ne 'left') { $sprite->sequence('left'); }
         }
         elsif ( $sprite->sequence() eq 'left' && !$pressed->{right} ) {
             $sprite->sequence('stopl');
@@ -148,17 +147,13 @@ $obj->set_acceleration(
                 $state->v_y(0);    # Causes test again in next frame
                 $ay = 0;
                 $lockjump = 0 if ( !$pressed->{up} );
-		$sprite->sequence( 'stopr' ) if $sprite->sequence =~ 'r';
-		$sprite->sequence( 'stopl' ) if $sprite->sequence =~ 'l';
-
+                $sprite->sequence( 'stopr' ) if $sprite->sequence eq 'jumpr';
+                $sprite->sequence( 'stopl' ) if $sprite->sequence eq 'jumpl';
             }
             else              
             { #falling in air 
-
                 $ay = $gravity;
-
-		# $lockjump = 1;
-
+                # $lockjump = 1;
             }
         }
 
@@ -200,7 +195,6 @@ my $render_obj = sub {
     my $c_rect = SDL::Rect->new( $state->x, $state->y, 16, 28 );
     $sprite->x( $state->x );
     $sprite->y( $state->y );
-    $sprite->next();
     $sprite->draw($app);
 
 };
