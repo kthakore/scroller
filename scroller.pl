@@ -201,7 +201,7 @@ my $render_obj = sub {
 
 $app->add_event_handler(
     sub {
-        return 0 if $_[0]->type == SDL_QUIT;
+        $_[1]->stop if $_[0]->type == SDL_QUIT || $quit;
 
         my $key = $_[0]->key_sym;
         my $name = SDL::Events::get_key_name($key) if $key;
@@ -212,8 +212,6 @@ $app->add_event_handler(
         elsif ( $_[0]->type == SDL_KEYUP ) {
             $pressed->{$name} = 0;
         }
-
-        return 1 if !$quit;
     }
 );
 
