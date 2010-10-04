@@ -17,7 +17,7 @@ $app->update();
 my @update_rects = ();
 
 my $sprite = SDLx::Sprite::Animated->new(
-    image           => 'data/m.png',
+    image           => 'data/m.bmp',
     rect            => SDL::Rect->new( 0, 0, 16, 28 ),
     ticks_per_frame => 6,
 );
@@ -191,11 +191,11 @@ $obj->set_acceleration(
 my $render_obj = sub {
 
     my $state = shift;
-
     my $c_rect = SDL::Rect->new( $state->x, $state->y, 16, 28 );
     $sprite->x( $state->x );
     $sprite->y( $state->y );
-    $sprite->draw($app);
+    $sprite->draw($app->surface);
+    #$app->draw_rect( [  $state->x, $state->y, 16, 28   ], 0xFF00FFFF );
 
 };
 
